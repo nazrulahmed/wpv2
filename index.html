@@ -1,0 +1,39 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Automation</title>
+    <style>
+        #loader {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">Loading qr code. Please wait...</div>
+    <div id="qr-container"></div>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        const loader = document.getElementById('loader');
+        const qrContainer = document.getElementById('qr-container');
+
+        const socket = io();
+        socket.on('qr-code', (qr) => {
+            loader.style.display = 'none';
+            qrContainer.innerHTML = `<img src="${qr}" alt="QR Code"/><br>Please don't close the window!`;
+        });
+
+        socket.on('client-ready', () => {
+            loader.style.display = 'block';
+
+            loader.innerHTML = "Client is ready. You can close the window and start texting";
+            qrContainer.style.display='none';
+            console.log('Client is ready from front end!');
+        });
+
+        loader.style.display = 'block'; // Show loader initially
+    </script>
+</body>
+</html>

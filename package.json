@@ -1,0 +1,23 @@
+{
+  "name": "wpv2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "http": "^0.0.1-security",
+    "node-fetch": "^3.3.2",
+    "qrcode": "^1.5.3",
+    "socket.io": "^4.7.4",
+    "wa-multi-session": "^3.4.0"
+  }
+}
