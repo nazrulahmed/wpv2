@@ -155,6 +155,7 @@ async function makeApiRequest(inputText) {
         );
   
       // Extract relevant information from the response
+      console.log(response);
       const replyText = response.data.candidates[0].content.parts[0].text;
   
       // Modify data.contents as needed
