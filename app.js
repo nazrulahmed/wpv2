@@ -68,9 +68,8 @@ app.get('/sendMessage/:sessionId/:to/:text', async (req, res) => {
 
 async function handleOnConnected(con){
   console.log('cohandleOnConnected===n');
-  sessionId ='';
   console.log(con);
-  io.emit(sessionId, 'connected');
+  io.emit(con, 'connected');
 
 }
 // Handle incoming messages
