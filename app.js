@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
-const { startSession, sendTextMessage, onMessageReceived, sendTyping, onQRUpdated,onConnected } = require('wa-multi-session');
+const { startSession, sendTextMessage, onMessageReceived, sendTyping, onQRUpdated,onConnected,onDisconnected } = require('wa-multi-session');
 const path = require('path');
 const axios = require('axios');
 require('dotenv').config();
@@ -41,6 +41,8 @@ app.get('/startSession/:sessionId', async (req, res) => {
     onMessageReceived(handleMessage);
     onQRUpdated(handleQRCode);
     onConnected(handleOnConnected);
+    onConnected(handleOnDisconnected);
+
 
 
     // Mark session as connected
@@ -71,6 +73,10 @@ async function handleOnConnected(con){
   console.log(con);
   io.emit(con, 'connected');
 
+}
+
+function handleOnDisconnected(con){
+  console.log(con);
 }
 // Handle incoming messages
 async function handleMessage(msg) {
