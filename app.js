@@ -139,21 +139,19 @@ async function makeApiRequest(inputText) {
 
   async function callApi(query) {
     try {
+      data.contents.push({
+        "role": "user",
+        "parts": [
+          {
+            text:query //+"Make sure that, the response is no longer than one line. you should not exceed more than one line. One more thing, don't give any info about Google or Gemini or google bird or yourself",
+        }
+        ]
+      });
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.API_KEY}`; // Replace with your actual API endpoint
   
       // Handle the response from the API
       const response = await axios.post(apiUrl,
-            {
-              contents:[
-                {
-                  "parts": [
-                    {
-                      text:query //+"Make sure that, the response is no longer than one line. you should not exceed more than one line. One more thing, don't give any info about Google or Gemini or google bird or yourself",
-                  }
-                  ]
-                }
-              ]
-            }
+        data
         );
   
       // Extract relevant information from the response
@@ -161,6 +159,14 @@ async function makeApiRequest(inputText) {
   
       // Modify data.contents as needed
    
+      data.contents.push({
+        "role": "model",
+        "parts": [
+          {
+            text:replyText //+"Make sure that, the response is no longer than one line. you should not exceed more than one line. One more thing, don't give any info about Google or Gemini or google bird or yourself",
+        }
+        ]
+      });
   
       return replyText;
   
