@@ -41,7 +41,7 @@ app.get('/startSession/:sessionId', async (req, res) => {
     onMessageReceived(handleMessage);
     onQRUpdated(handleQRCode);
     onConnected(handleOnConnected);
-    onConnected(handleOnDisconnected);
+    onDisconnected(handleOnDisconnected);
 
 
 
@@ -76,6 +76,7 @@ async function handleOnConnected(con){
 }
 
 function handleOnDisconnected(con){
+  console.log('----------------------- DISCONNECTED_________________');
   console.log(con);
 }
 // Handle incoming messages
