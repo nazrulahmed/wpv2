@@ -48,7 +48,7 @@ app.get('/startSession/:sessionId', async (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
   } catch (error) {
     console.log(error);
-    io.emit("qr-code", 'connected');
+    io.emit(sessionId, 'connected');
 
     res.status(500).json({ error: 'Error starting session ' + error });
   }
@@ -68,7 +68,7 @@ app.get('/sendMessage/:sessionId/:to/:text', async (req, res) => {
 
 async function handleOnConnected(con){
   console.log('cohandleOnConnected===n');
-  io.emit("qr-code", 'connected');
+  io.emit(con.sessionId, 'connected');
 
 }
 // Handle incoming messages
@@ -188,7 +188,7 @@ async function handleQRCode({ sessionId, qr }) {
 
   const qrImage = await qrcode.toDataURL(qr);
 
-  io.emit("qr-code", qrImage);
+  io.emit(sessionId, qrImage);
   console.log('emit done');
 }
 
