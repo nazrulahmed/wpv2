@@ -78,6 +78,8 @@ async function handleOnConnected(con){
 function handleOnDisconnected(con){
   console.log('----------------------- DISCONNECTED_________________');
   console.log(con);
+  io.emit(con, 'disconnected');
+
 }
 // Handle incoming messages
 async function handleMessage(msg) {
