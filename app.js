@@ -32,7 +32,7 @@ app.get('/startSession/:sessionId', async (req, res) => {
     const result = await startSession(sessionId);
 
     // Add listeners for message and QR code updates
-    onMessageReceived(handleMessage);
+    // onMessageReceived(handleMessage);
     onQRUpdated(handleQRCode);
     onConnected(handleOnConnected);
     onDisconnected(handleOnDisconnected);
