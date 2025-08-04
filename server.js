@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const axios = require('axios');
 const qrcode = require('qrcode');
+
 require('dotenv').config();
 
 const {
@@ -14,6 +15,9 @@ const {
   onConnected,
   onDisconnected
 } = require('wa-multi-session');
+
+const { getAllGroups } = require('wa-multi-session');
+
 
 const app = express();
 const http = require('http').Server(app);
@@ -175,6 +179,28 @@ app.get('/deleteSession/:uid', async (req, res) => {
     });
   }
 });
+
+app.get('/getGroups/:uid', async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    const groups = await getAllGroups({ sessionId: uid });
+
+    res.status(200).json({
+      uid,
+      total: groups.length,
+      groups // each has { id: 'xxx-yyy@g.us', subject: 'Group Name', ... }
+    });
+  } catch (error) {
+    console.error('❌ Error fetching groups:', error?.message || error);
+    res.status(500).json({
+      error: 'Failed to get groups',
+      details: error?.message || error
+    });
+  }
+});
+
+
 
 /**
  * 🔁 QR Code event handler

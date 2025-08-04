@@ -8,18 +8,18 @@ const db = admin.firestore();
 const WHATSAPP_API_URL = "https://whatsapp-api.nazrulahmed.com";
 
 exports.sendScheduledCampaigns = functions.pubsub
-  .schedule("every 5 minutes")
+  .schedule("every 2 minutes")
   .onRun(async () => {
     const now = admin.firestore.Timestamp.now();
-    functions.logger.log("Running scheduled campaign job at:", now.toDate());
+    functions.logger.log("🔄 Running scheduled campaign job at:", now.toDate());
 
-    // Get 'Scheduled' campaigns due now
+    // Query 'Scheduled' campaigns due now
     const scheduledQuery = db
       .collection("campaigns")
       .where("status", "==", "Scheduled")
       .where("scheduledAt", "<=", now);
 
-    // Get 'Queued' campaigns with null scheduledAt
+    // Query 'Queued' campaigns with null scheduledAt
     const queuedQuery = db
       .collection("campaigns")
       .where("status", "==", "Queued")
@@ -33,7 +33,7 @@ exports.sendScheduledCampaigns = functions.pubsub
     const allDocs = [...scheduledSnapshot.docs, ...queuedSnapshot.docs];
 
     if (allDocs.length === 0) {
-      functions.logger.log("No scheduled or queued campaigns are due.");
+      functions.logger.log("✅ No scheduled or queued campaigns are due.");
       return null;
     }
 
@@ -41,12 +41,11 @@ exports.sendScheduledCampaigns = functions.pubsub
       const campaignId = doc.id;
       const campaign = doc.data();
 
-      // Update to 'Queued' if previously 'Scheduled'
       if (campaign.status === "Scheduled") {
         await doc.ref.update({ status: "Queued", scheduledAt: null });
       }
 
-      functions.logger.log(`Processing campaign: ${campaignId}`);
+      functions.logger.log(`🚀 Processing campaign: ${campaignId}`);
 
       try {
         const { userId, message, recipients } = campaign;
@@ -54,36 +53,47 @@ exports.sendScheduledCampaigns = functions.pubsub
         let failed = false;
 
         for (const recipient of recipients) {
+          const phone =
+            typeof recipient === "string"
+              ? recipient
+              : recipient.Phone || recipient.phone || null;
+
+          if (!phone) {
+            functions.logger.warn(`❌ Invalid recipient format in campaign ${campaignId}`, recipient);
+            failed = true;
+            continue;
+          }
+
           try {
             const text = encodeURIComponent(message);
-            const url = `${WHATSAPP_API_URL}/sendMessage/${userId}/${recipient}/${text}`;
-
+            const url = `${WHATSAPP_API_URL}/sendMessage/${userId}/${phone}/${text}`;
             const response = await axios.get(url);
 
             if (response.status === 200) {
               successfulSends++;
+              functions.logger.log(`✅ Sent message to ${phone}`);
             } else {
               failed = true;
               functions.logger.warn(
-                `Failed to send to ${recipient} for campaign ${campaignId}. Status: ${response.status}`
+                `⚠️ Failed to send to ${phone} for campaign ${campaignId}. Status: ${response.status}`
               );
             }
-          } catch (error) {
+          } catch (err) {
             failed = true;
             functions.logger.error(
-              `Error sending to recipient ${recipient} for campaign ${campaignId}:`,
-              error
+              `❌ Error sending to recipient ${phone} for campaign ${campaignId}:`,
+              err.message || err
             );
           }
         }
 
         if (failed || successfulSends === 0) {
           await doc.ref.update({ status: "Failed" });
-          functions.logger.warn(`Campaign ${campaignId} failed. No tokens deducted.`);
+          functions.logger.warn(`❌ Campaign ${campaignId} failed. No tokens deducted.`);
           return;
         }
 
-        // Deduct tokens only if all sends were successful
+        // Deduct tokens
         const wordCount = message.trim().split(/\s+/).filter(Boolean).length;
         const tokensToDeduct = successfulSends * wordCount;
 
@@ -93,9 +103,9 @@ exports.sendScheduledCampaigns = functions.pubsub
         });
 
         await doc.ref.update({ status: "Sent" });
-        functions.logger.log(`Campaign ${campaignId} successfully sent. Tokens deducted: ${tokensToDeduct}`);
+        functions.logger.log(`✅ Campaign ${campaignId} sent. Tokens deducted: ${tokensToDeduct}`);
       } catch (error) {
-        functions.logger.error(`Error processing campaign ${campaignId}:`, error);
+        functions.logger.error(`❌ Error processing campaign ${campaignId}:`, error.message || error);
         await doc.ref.update({ status: "Failed" });
       }
     });
